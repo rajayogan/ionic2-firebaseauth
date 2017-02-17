@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
-import { NavController, NavParams } from 'ionic-angular';
+import { NavController, NavParams, Platform } from 'ionic-angular';
 import { AuthProviders, AuthMethods, AngularFire } from 'angularfire2';
+import { Facebook } from 'ionic-native';
+import firebase from 'firebase';
 
 /*
   Generated class for the Login page.
@@ -15,7 +17,7 @@ import { AuthProviders, AuthMethods, AngularFire } from 'angularfire2';
 export class LoginPage {
   email: any;
   password: any;
-  constructor(public navCtrl: NavController, public navParams: NavParams, public angfire: AngularFire) {}
+  constructor(public navCtrl: NavController, public navParams: NavParams, public angfire: AngularFire, public platform: Platform) {}
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad LoginPage');
@@ -43,12 +45,27 @@ export class LoginPage {
   }
 
   twitterlogin() {
-    this.angfire.auth.login({
-      provider: AuthProviders.Twitter,
-      method: AuthMethods.Popup
-    }).then((response) => {
-      console.log('Login success with twitter' + JSON.stringify(response));
-      let currentuser = {
+    if (this.platform.is('cordova')) {
+      let accessToken = '66942106-nYFat8A8U5SUPuZihcNjN6NpDFnBHpnimC3ykjnhZ';
+      let secretKey = 'CWFF1cdbkqwnSKxq5sbaIvXCj6N2YjrrmV6nwmD4ESEUv';
+      const twitterCreds = firebase.auth.TwitterAuthProvider.credential(accessToken, secretKey);
+        firebase.auth().signInWithCredential(twitterCreds).then((res) => {
+          let currentuser = firebase.auth().currentUser;
+          window.localStorage.setItem('currentuser', JSON.stringify(currentuser.displayName));
+          alert(currentuser.displayName);
+          this.navCtrl.pop();
+        }, (err) => {
+          alert('Login not successful' + err);
+        })
+      
+    }
+    else {
+      this.angfire.auth.login({
+        provider: AuthProviders.Twitter,
+        method: AuthMethods.Popup
+      }).then((response) => {
+        console.log('Login success with twitter' + JSON.stringify(response));
+        let currentuser = {
           email: response.auth.displayName,
           picture: response.auth.photoURL
         };
@@ -56,17 +73,31 @@ export class LoginPage {
         this.navCtrl.pop();
       }).catch((error) => {
         console.log(error);
-    })
-    
+      })
+    }
   }
 
-   fblogin() {
-    this.angfire.auth.login({
-      provider: AuthProviders.Facebook,
-      method: AuthMethods.Popup
-    }).then((response) => {
-      console.log('Login success with twitter' + JSON.stringify(response));
-      let currentuser = {
+  fblogin() {
+    if (this.platform.is('cordova')) {
+      Facebook.login(['email', 'public_profile']).then((res) => {
+        const facebookCreds = firebase.auth.FacebookAuthProvider.credential(res.authResponse.accessToken);
+        firebase.auth().signInWithCredential(facebookCreds).then((res) => {
+          let currentuser = firebase.auth().currentUser;
+          window.localStorage.setItem('currentuser', JSON.stringify(currentuser.displayName));
+          alert(currentuser.displayName);
+          this.navCtrl.pop();
+        }, (err) => {
+          alert('Login not successful' + err);
+        })
+      })
+    }
+    else {
+      this.angfire.auth.login({
+        provider: AuthProviders.Facebook,
+        method: AuthMethods.Popup
+      }).then((response) => {
+        console.log('Login success with twitter' + JSON.stringify(response));
+        let currentuser = {
           email: response.auth.displayName,
           picture: response.auth.photoURL
         };
@@ -74,8 +105,9 @@ export class LoginPage {
         this.navCtrl.pop();
       }).catch((error) => {
         console.log(error);
-    })
+      })
     
-  }
+    }
+  }  
 
 }
