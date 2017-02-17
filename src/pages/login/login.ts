@@ -46,8 +46,8 @@ export class LoginPage {
 
   twitterlogin() {
     if (this.platform.is('cordova')) {
-      let accessToken = '66942106-nYFat8A8U5SUPuZihcNjN6NpDFnBHpnimC3ykjnhZ';
-      let secretKey = 'CWFF1cdbkqwnSKxq5sbaIvXCj6N2YjrrmV6nwmD4ESEUv';
+      let accessToken = '<youraccesstoken>';
+      let secretKey = '<yoursecretkey>';
       const twitterCreds = firebase.auth.TwitterAuthProvider.credential(accessToken, secretKey);
         firebase.auth().signInWithCredential(twitterCreds).then((res) => {
           let currentuser = firebase.auth().currentUser;
